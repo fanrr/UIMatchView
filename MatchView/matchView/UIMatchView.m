@@ -40,8 +40,8 @@
 #pragma mark
 #pragma mark 重新刷新
 - (void)reloadMatchView{
-    [self setMatchCell];
-    [self setMatchCellLocation];
+    [self setBaseMatchView];
+    [self setMatchViewLocation];
 }
 #pragma mark
 #pragma mark 从重用数组中获取view
@@ -55,7 +55,7 @@
 }
 #pragma mark
 #pragma mark 向显示的数组中添加一个
-- (void)addMatchCell:(UIView *)view{
+- (void)addMatchView:(UIView *)view{
     if (view) {
         [self.usedArray addObject:view];
         NSUInteger index = 3;
@@ -67,7 +67,7 @@
 }
 #pragma mark
 #pragma mark 设置显示数组内的View
-- (void)setMatchCell{
+- (void)setBaseMatchView{
     
     [self.usedArray removeAllObjects];
     self.index = 0;
@@ -82,7 +82,7 @@
 }
 #pragma mark
 #pragma mark 层次效果
-- (void)setMatchCellLocation{
+- (void)setMatchViewLocation{
     __weak UIMatchView * weak_self = self;
     [self.usedArray enumerateObjectsUsingBlock:^(UIView * obj, NSUInteger idx, BOOL *stop) {
         NSUInteger index = idx;
@@ -97,7 +97,7 @@
 }
 #pragma mark
 #pragma mark 层次变化效果
-- (void)setMatchCellScale:(CGFloat)s{
+- (void)setMatchViewScale:(CGFloat)s{
     if (s >= 1) {
         s = 1;
     }
@@ -151,7 +151,7 @@
             }
         }else{
             UIView * view = [self.dataSource matchView:self viewForRowAtIndex: ((int)self.index + (int)self.usedArray.count + 1)];
-            [self addMatchCell:view];
+            [self addMatchView:view];
             self.index ++;
         }
     }];
@@ -175,7 +175,7 @@
         if (view) {
             view.center = CGPointMake(point.x + ( self.center.x - self.touchLocation.x), point.y + (self.center.y - self.touchLocation.y));
             CGFloat s = fabs(self.frame.size.width / 2.0 - view.center.x) / self.frame.size.width * 2.0;
-            [self setMatchCellScale:s];
+            [self setMatchViewScale:s];
         }
     }
 }
@@ -189,7 +189,7 @@
     }else{
         [UIView animateWithDuration:.3 animations:^{
             view.center = self.center;
-            [self setMatchCellScale:0];
+            [self setMatchViewScale:0];
         }];
     }
 }

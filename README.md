@@ -47,4 +47,6 @@
  *  @param matchview      UIMatchView
  *  @param swipeDirection 消失方向
  */
+ - (void)matchview:(UIMatchView *)matchview swipeDirection:(SwipeDirection)swipeDirection;
 ```
+方法的调用以及代理和UITableView相似

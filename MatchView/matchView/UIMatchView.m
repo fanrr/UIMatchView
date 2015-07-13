@@ -8,7 +8,7 @@
 
 #import "UIMatchView.h"
 #define SCALE_SUB 0.03
-#define OFFSET_SUB 14
+#define OFFSET_SUB 12
 @interface UIMatchView ()
 /* 重用数组 */
 @property (nonatomic, strong) NSMutableArray * reusedArray;
@@ -34,7 +34,7 @@
     return self;
 }
 - (NSInteger)totalCount{
-   NSInteger count = [self.dataSource numberOfView];
+    NSInteger count = [self.dataSource numberOfView];
     return count;
 }
 #pragma mark
@@ -59,9 +59,9 @@
     if (view) {
         [self.usedArray addObject:view];
         NSUInteger index = 3;
-        view.frame = CGRectMake(0, 0, [self.delegate matchViewSize].width,[self.delegate matchViewSize].height);
-        view.transform = CGAffineTransformMakeScale(1-index * SCALE_SUB, 1-index * SCALE_SUB);
-        view.center = CGPointMake(self.center.x, self.center.y + index *OFFSET_SUB);
+        view.frame       = CGRectMake(0, 0, [self.delegate matchViewSize].width,[self.delegate matchViewSize].height);
+        view.transform   = CGAffineTransformMakeScale(1-index * SCALE_SUB, 1-index * SCALE_SUB);
+        view.center      = CGPointMake(self.center.x, self.center.y + index *OFFSET_SUB);
         [self insertSubview:view atIndex:0];
     }
 }
@@ -80,6 +80,8 @@
         [self.usedArray addObject:view];
     }
 }
+#pragma mark
+#pragma mark 层次效果
 - (void)setMatchCellLocation{
     __weak UIMatchView * weak_self = self;
     [self.usedArray enumerateObjectsUsingBlock:^(UIView * obj, NSUInteger idx, BOOL *stop) {
@@ -93,6 +95,8 @@
         [weak_self insertSubview:obj atIndex:0];
     }];
 }
+#pragma mark
+#pragma mark 层次变化效果
 - (void)setMatchCellScale:(CGFloat)s{
     if (s >= 1) {
         s = 1;
@@ -105,6 +109,55 @@
         }
     }];
 }
+
+#pragma mark
+#pragma mark 把滑动的View移除屏幕
+- (void)rmView:(UIView *)view{
+    CGFloat s = fabs((view.center.y - self.center.y) / (view.center.x - self.center.x));
+    CGFloat x;
+    CGFloat y;
+    if (view.center.x < self.center.x) {//左
+        if ([self.delegate respondsToSelector:@selector(matchview:swipeDirection:)]) {
+            [self.delegate matchview:self swipeDirection:SwipeDirectionLeft];
+        }
+        x = - view.frame.size.width / 2.0;
+        if (view.center.y > self.center.y)//下
+            y = self.center.y + s * (self.center.x + view.frame.size.width / 2.0);
+        else//上
+            y = self.center.y - s * (self.center.x + view.frame.size.width / 2.0);
+    }else{//右
+        if ([self.delegate respondsToSelector:@selector(matchview:swipeDirection:)]) {
+            [self.delegate matchview:self swipeDirection:SwipeDirectionRight];
+        }
+        x = self.center.x * 2 + view.frame.size.width / 2.0;
+        if (view.center.y > self.center.y) //下
+            y = self.center.y + s * (self.center.x * 2 + view.frame.size.width / 2.0);
+        else//上
+            y = self.center.y - s * (self.center.x * 2 + view.frame.size.width / 2.0);
+    }
+    [UIView animateWithDuration:.3 animations:^{
+        view.center = CGPointMake(x, y);
+    }completion:^(BOOL finished) {
+        [self.usedArray removeObject:view];
+        [view removeFromSuperview];
+        [self.reusedArray addObject:view];
+        if (self.index + self.usedArray.count + 1>= self.totalCount) {
+            if (self.index != self.totalCount - 1) {
+                self.index ++;
+            }else{
+                if ([self.delegate respondsToSelector:@selector(matchViewMatchDone:)]) {
+                    [self.delegate matchViewMatchDone:self];
+                }
+            }
+        }else{
+            UIView * view = [self.dataSource matchView:self viewForRowAtIndex: ((int)self.index + (int)self.usedArray.count + 1)];
+            [self addMatchCell:view];
+            self.index ++;
+        }
+    }];
+}
+
+
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event{
     UITouch * touch = [touches anyObject];
     UIView * view = [self.usedArray firstObject];
@@ -129,7 +182,7 @@
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event{
     self.touchLocation = CGPointZero;
     UIView * view = [self.usedArray firstObject];
-
+    
     
     if (fabs( view.center.x - self.center.x ) >= [self.delegate  matchViewSize].width / 2.0) {
         [self rmView:view];
@@ -139,46 +192,5 @@
             [self setMatchCellScale:0];
         }];
     }
-}
-- (void)rmView:(UIView *)view{
-    CGFloat s = fabs((view.center.y - self.center.y) / (view.center.x - self.center.x));
-    CGFloat x;
-    CGFloat y;
-    if (view.center.x < self.center.x) {//左
-        x = - view.frame.size.width / 2.0;
-        if (view.center.y > self.center.y) { //下
-            y = self.center.y + s * (self.center.x + view.frame.size.width / 2.0);
-        }else{//上
-            y = self.center.y - s * (self.center.x + view.frame.size.width / 2.0);
-        }
-    }else{//右
-        x = self.center.x * 2 + view.frame.size.width / 2.0;
-        if (view.center.y > self.center.y) { //下
-            y = self.center.y + s * (self.center.x * 2 + view.frame.size.width / 2.0);
-        }else{//上
-            y = self.center.y - s * (self.center.x * 2 + view.frame.size.width / 2.0);
-        }
-    }
-    [UIView animateWithDuration:.3 animations:^{
-        view.center = CGPointMake(x, y);
-    }completion:^(BOOL finished) {
-        [self.usedArray removeObject:view];
-        [view removeFromSuperview];
-        [self.reusedArray addObject:view];
-        if (self.index + self.usedArray.count + 1>= self.totalCount) {
-            if (self.index != self.totalCount - 1) {
-                self.index ++;
-            }else{
-                if ([self.delegate respondsToSelector:@selector(matchViewMatchDone:)]) {
-                    [self.delegate matchViewMatchDone:self];
-                }
-            }
-        }else{
-            UIView * view = [self.dataSource matchView:self viewForRowAtIndex: ((int)self.index + (int)self.usedArray.count + 1)];
-            [self addMatchCell:view];
-            self.index ++;
-        }
-        
-    }];
 }
 @end

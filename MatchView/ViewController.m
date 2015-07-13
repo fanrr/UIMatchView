@@ -68,4 +68,7 @@
         [weak.matchView reloadMatchView];
     });
 }
+- (void)matchview:(UIMatchView *)matchview swipeDirection:(SwipeDirection)swipeDirection{
+    NSLog(@"SwipeDirection %d",swipeDirection);
+}
 @end

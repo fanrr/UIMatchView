@@ -14,10 +14,11 @@
 @end
 @protocol UIMatchViewDelegate
 - (CGSize)matchViewSize;
-
+- (void)matchViewMatchDone:(UIMatchView *)matchView;
 @end
 @interface UIMatchView : UIView
 @property (nonatomic, weak) id <UIMatchViewDataSource> dataSource;
-@property (nonatomic, weak) id <UIMatchViewDelegate>   delegate;
+@property (nonatomic, weak) NSObject  <UIMatchViewDelegate>  * delegate;
+- (UIView *)getReusedView;
 - (void)reloadMatchView;
 @end

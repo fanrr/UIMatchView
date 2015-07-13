@@ -5,7 +5,7 @@
 
 
 # 怎么用它？
-```object-c
+```c
 /**
  *  按照index返回View
  *
@@ -16,7 +16,7 @@
  */
 - (UIView * )matchView:(UIMatchView *)matchView viewForRowAtIndex:(int)index;
 ```
-```object-c
+```c
 /**
  *  返回共有多少个
  *
@@ -24,7 +24,7 @@
  */
 - (int )numberOfView;
 ```
-```object-c
+```c
 /**
  *  每一个的尺寸
  *
@@ -32,7 +32,7 @@
  */
 - (CGSize)matchViewSize;
 ```
-```object-c
+```c
 /**
  *  卡片滑完之后的回调
  *
@@ -40,7 +40,7 @@
  */
 - (void)matchViewMatchDone:(UIMatchView *)matchView;
 ```
-```object-c
+```c
 /**
  *  滑动消失时候调用
  *

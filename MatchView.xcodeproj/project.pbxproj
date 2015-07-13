@@ -15,6 +15,7 @@
 		4DEAACF21B50D0230053F843 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4DEAACF01B50D0230053F843 /* LaunchScreen.xib */; };
 		4DEAACFE1B50D0230053F843 /* MatchViewTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DEAACFD1B50D0230053F843 /* MatchViewTests.m */; };
 		4DEAAD0A1B50DC890053F843 /* UIMatchView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DEAAD091B50DC890053F843 /* UIMatchView.m */; };
+		4DF241731B5397720034AD99 /* Untitled.gif in Resources */ = {isa = PBXBuildFile; fileRef = 4DF241721B5397720034AD99 /* Untitled.gif */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,6 +44,7 @@
 		4DEAACFD1B50D0230053F843 /* MatchViewTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MatchViewTests.m; sourceTree = "<group>"; };
 		4DEAAD081B50DC890053F843 /* UIMatchView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UIMatchView.h; path = MatchView/matchView/UIMatchView.h; sourceTree = "<group>"; };
 		4DEAAD091B50DC890053F843 /* UIMatchView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = UIMatchView.m; path = MatchView/matchView/UIMatchView.m; sourceTree = "<group>"; };
+		4DF241721B5397720034AD99 /* Untitled.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = Untitled.gif; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,6 +102,7 @@
 		4DEAACE11B50D0230053F843 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				4DF241721B5397720034AD99 /* Untitled.gif */,
 				4DEAACE21B50D0230053F843 /* Info.plist */,
 				4DEAACE31B50D0230053F843 /* main.m */,
 			);
@@ -213,6 +216,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4DEAACED1B50D0230053F843 /* Main.storyboard in Resources */,
+				4DF241731B5397720034AD99 /* Untitled.gif in Resources */,
 				4DEAACF21B50D0230053F843 /* LaunchScreen.xib in Resources */,
 				4DEAACEF1B50D0230053F843 /* Images.xcassets in Resources */,
 			);
@@ -432,6 +436,7 @@
 				4DEAAD031B50D0230053F843 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		4DEAAD041B50D0230053F843 /* Build configuration list for PBXNativeTarget "MatchViewTests" */ = {
 			isa = XCConfigurationList;
@@ -440,6 +445,7 @@
 				4DEAAD061B50D0230053F843 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

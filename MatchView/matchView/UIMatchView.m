@@ -17,6 +17,7 @@
 @property (nonatomic, assign) CGPoint          touchLocation;
 @property (nonatomic, assign) NSInteger        index;
 @property (nonatomic, assign) NSInteger        totalCount;
+@property (nonatomic, assign) BOOL             canMatch;
 @end
 @implementation UIMatchView
 - (NSMutableArray *)usedArray{
@@ -30,6 +31,7 @@
     self = [super initWithFrame:frame];
     if (self) {
         self.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:.4];
+        self.canMatch        = NO;
     }
     return self;
 }
@@ -40,8 +42,8 @@
 #pragma mark
 #pragma mark 重新刷新
 - (void)reloadMatchView{
+    self.canMatch = NO;
     [self setBaseMatchView];
-    [self setMatchViewLocation];
 }
 #pragma mark
 #pragma mark 从重用数组中获取view
@@ -79,6 +81,7 @@
         UIView * view = [self.dataSource matchView:self viewForRowAtIndex:i];
         [self.usedArray addObject:view];
     }
+    [self setMatchViewLocation];
 }
 #pragma mark
 #pragma mark 层次效果
@@ -89,12 +92,32 @@
         if (index > 3) {
             index = 3;
         }
-        obj.frame = CGRectMake(0, 0, [weak_self.delegate matchViewSize].width,[weak_self.delegate matchViewSize].height);
+        obj.frame = CGRectMake(- [weak_self.delegate matchViewSize].width, 0,  [weak_self.delegate matchViewSize].width,[weak_self.delegate matchViewSize].height);
         obj.transform = CGAffineTransformMakeScale(1-index * SCALE_SUB, 1-index * SCALE_SUB);
-        obj.center = CGPointMake(weak_self.center.x, weak_self.center.y + index *OFFSET_SUB);
         [weak_self insertSubview:obj atIndex:0];
     }];
+    [self setViewsComeIn:(int)self.usedArray.count - 1];
 }
+#pragma mark
+#pragma mark 依次入场
+- (void)setViewsComeIn:(int)index{
+    __weak UIMatchView * weak_match = self;
+    if (index < self.usedArray.count && index >= 0) {
+        UIView * view = [self.usedArray objectAtIndex:index];
+        [UIView animateWithDuration:.5 animations:^{
+            view.center = CGPointMake(self.center.x, self.center.y + index *OFFSET_SUB);
+        }];
+        if (index != 0) {
+            index --;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [weak_match setViewsComeIn:index];
+            });
+        }else{
+            self.canMatch = YES;
+        }
+    }
+}
+
 #pragma mark
 #pragma mark 层次变化效果
 - (void)setMatchViewScale:(CGFloat)s{
@@ -135,16 +158,20 @@
         else//上
             y = self.center.y - s * (self.center.x * 2 + view.frame.size.width / 2.0);
     }
+    self.canMatch = NO;
     [UIView animateWithDuration:.3 animations:^{
+        
         view.center = CGPointMake(x, y);
     }completion:^(BOOL finished) {
         [self.usedArray removeObject:view];
         [view removeFromSuperview];
         [self.reusedArray addObject:view];
+        self.canMatch = YES;
         if (self.index + self.usedArray.count + 1>= self.totalCount) {
             if (self.index != self.totalCount - 1) {
                 self.index ++;
             }else{
+                self.canMatch = NO;
                 if ([self.delegate respondsToSelector:@selector(matchViewMatchDone:)]) {
                     [self.delegate matchViewMatchDone:self];
                 }
@@ -159,6 +186,9 @@
 
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event{
+    if (!self.canMatch) {
+        return;
+    }
     UITouch * touch = [touches anyObject];
     UIView * view = [self.usedArray firstObject];
     CGPoint point = [touch locationInView:self];
@@ -169,6 +199,9 @@
     }
 }
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event{
+    if (!self.canMatch) {
+        return;
+    }
     UIView * view = [self.usedArray firstObject];
     if (!CGPointEqualToPoint(self.touchLocation, CGPointZero)) {
         CGPoint point = [[touches anyObject] locationInView:self];
@@ -184,6 +217,9 @@
     }
 }
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event{
+    if (!self.canMatch) {
+        return;
+    }
     self.touchLocation = CGPointZero;
     UIView * view = [self.usedArray firstObject];
     
@@ -194,7 +230,7 @@
         [UIView animateWithDuration:.3 animations:^{
             view.center = self.center;
             view.transform = CGAffineTransformMakeRotation(0);
-
+            
             [self setMatchViewScale:0];
         }];
     }

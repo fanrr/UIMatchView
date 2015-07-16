@@ -175,7 +175,11 @@
         if (view) {
             view.center = CGPointMake(point.x + ( self.center.x - self.touchLocation.x), point.y + (self.center.y - self.touchLocation.y));
             CGFloat s = fabs(self.frame.size.width / 2.0 - view.center.x) / self.frame.size.width * 2.0;
+            NSLog(@"%f",s);
+            CGFloat ros = (self.frame.size.width / 2.0 - view.center.x) / self.frame.size.width * 2.0;
+            view.transform = CGAffineTransformMakeRotation(M_PI_4 / 4 * - ros);
             [self setMatchViewScale:s];
+            
         }
     }
 }
@@ -189,6 +193,8 @@
     }else{
         [UIView animateWithDuration:.3 animations:^{
             view.center = self.center;
+            view.transform = CGAffineTransformMakeRotation(0);
+
             [self setMatchViewScale:0];
         }];
     }

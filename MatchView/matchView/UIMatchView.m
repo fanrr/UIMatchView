@@ -9,7 +9,7 @@
 #import "UIMatchView.h"
 #define SCALE_SUB 0.03
 #define OFFSET_SUB 12
-@interface UIMatchView ()
+@interface UIMatchView ()<UIGestureRecognizerDelegate>
 /* 重用数组 */
 @property (nonatomic, strong) NSMutableArray * reusedArray;
 /* 使用中数组 */
@@ -50,6 +50,10 @@
 - (UIView *)getReusedView{
     if (self.reusedArray.count) {
         UIView * view = [self.reusedArray lastObject];
+        UIPanGestureRecognizer * pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panAction:)];
+        pan.delegate = self;
+        pan.maximumNumberOfTouches = 1;
+        [view addGestureRecognizer:pan];
         [self.reusedArray removeLastObject];
         return view;
     }
@@ -64,8 +68,63 @@
         view.frame       = CGRectMake(0, 0, [self.delegate matchViewSize].width,[self.delegate matchViewSize].height);
         view.transform   = CGAffineTransformMakeScale(1-index * SCALE_SUB, 1-index * SCALE_SUB);
         view.center      = CGPointMake(self.center.x, self.center.y + index *OFFSET_SUB);
+        UIPanGestureRecognizer * pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panAction:)];
+        pan.delegate = self;
+        pan.maximumNumberOfTouches = 1;
+        [view addGestureRecognizer:pan];
         [self insertSubview:view atIndex:0];
     }
+}
+- (void)panAction:(UIPanGestureRecognizer *)pan{
+    
+    if (pan.state == UIGestureRecognizerStateBegan) {
+        if (!self.canMatch) {
+            return ;
+        }
+        UIView * view = [self.usedArray firstObject];
+        CGPoint point = [pan locationInView:self];
+        if(CGRectContainsPoint(view.frame, point)){
+            self.touchLocation = point;
+        }else{
+            self.touchLocation = CGPointZero;
+        }
+    }else if (pan.state == UIGestureRecognizerStateChanged) {
+        if (!self.canMatch) {
+            return;
+        }
+        UIView * view = [self.usedArray firstObject];
+        if (!CGPointEqualToPoint(self.touchLocation, CGPointZero)) {
+            CGPoint point = [pan locationInView:self];
+            if (view) {
+                view.center = CGPointMake(point.x + ( self.center.x - self.touchLocation.x), point.y + (self.center.y - self.touchLocation.y));
+                CGFloat s = fabs(self.frame.size.width / 2.0 - view.center.x) / self.frame.size.width * 2.0;
+                NSLog(@"%f",s);
+                CGFloat ros = (self.frame.size.width / 2.0 - view.center.x) / self.frame.size.width * 2.0;
+                view.transform = CGAffineTransformMakeRotation(M_PI_4 / 4 * - ros);
+                [self setMatchViewScale:s];
+                
+            }
+        }
+        
+    }else if (pan.state == UIGestureRecognizerStateEnded){
+        
+        if (!self.canMatch) {
+            return;
+        }
+        self.touchLocation = CGPointZero;
+        UIView * view = [self.usedArray firstObject];
+        if (fabs( view.center.x - self.center.x ) >= [self.delegate  matchViewSize].width / 2.0) {
+            [self rmView:view];
+        }else{
+            [UIView animateWithDuration:.3 animations:^{
+                view.center = self.center;
+                view.transform = CGAffineTransformMakeRotation(0);
+                
+                [self setMatchViewScale:0];
+            }];
+        }
+    }
+    
 }
 #pragma mark
 #pragma mark 设置显示数组内的View
@@ -79,6 +138,10 @@
     }
     for (int i = 0; i < number; i ++) {
         UIView * view = [self.dataSource matchView:self viewForRowAtIndex:i];
+        UIPanGestureRecognizer * pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panAction:)];
+        pan.delegate = self;
+        pan.maximumNumberOfTouches = 1;
+        [view addGestureRecognizer:pan];
         [self.usedArray addObject:view];
     }
     [self setMatchViewLocation];
@@ -183,56 +246,13 @@
         }
     }];
 }
-
-
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event{
-    if (!self.canMatch) {
-        return;
-    }
-    UITouch * touch = [touches anyObject];
-    UIView * view = [self.usedArray firstObject];
-    CGPoint point = [touch locationInView:self];
-    if(CGRectContainsPoint(view.frame, point)){
-        self.touchLocation = point;
-    }else{
-        self.touchLocation = CGPointZero;
-    }
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer{
+    return NO;
 }
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event{
-    if (!self.canMatch) {
-        return;
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer{
+    if (CGPointEqualToPoint(self.touchLocation, CGPointZero)) {
+        return YES;
     }
-    UIView * view = [self.usedArray firstObject];
-    if (!CGPointEqualToPoint(self.touchLocation, CGPointZero)) {
-        CGPoint point = [[touches anyObject] locationInView:self];
-        if (view) {
-            view.center = CGPointMake(point.x + ( self.center.x - self.touchLocation.x), point.y + (self.center.y - self.touchLocation.y));
-            CGFloat s = fabs(self.frame.size.width / 2.0 - view.center.x) / self.frame.size.width * 2.0;
-            NSLog(@"%f",s);
-            CGFloat ros = (self.frame.size.width / 2.0 - view.center.x) / self.frame.size.width * 2.0;
-            view.transform = CGAffineTransformMakeRotation(M_PI_4 / 4 * - ros);
-            [self setMatchViewScale:s];
-            
-        }
-    }
-}
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event{
-    if (!self.canMatch) {
-        return;
-    }
-    self.touchLocation = CGPointZero;
-    UIView * view = [self.usedArray firstObject];
-    
-    
-    if (fabs( view.center.x - self.center.x ) >= [self.delegate  matchViewSize].width / 2.0) {
-        [self rmView:view];
-    }else{
-        [UIView animateWithDuration:.3 animations:^{
-            view.center = self.center;
-            view.transform = CGAffineTransformMakeRotation(0);
-            
-            [self setMatchViewScale:0];
-        }];
-    }
+    return NO;
 }
 @end
